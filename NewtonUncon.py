@@ -34,32 +34,24 @@ def BacktrackingLineSearch(step, grad, x, alpha=0.1, beta=0.7):
     return t
 
 def NewtonMethod(x_init, tol=10e-15, max_iter=50):
-    x = np.array(x_init, dtype=float)  # Start point
+    x = np.array(x_init, dtype=float)  
     for i in range(max_iter):
         grad = Gradient(x[0], x[1])
         step = NewtonStep(x[0], x[1])
         lambda_sq = NewtonDecrement(grad, step)
-        # Check stopping condition: λ²/2 <= tol
         print(x)
         if lambda_sq / 2 <= tol:
             print(f"Converged in {i} iterations.")
             return x
-        # Line search (optional) — here we simply take full step size 1
         t = BacktrackingLineSearch(step, grad, x)
-        # Update x
         x += t * step
     print("Reached maximum iterations.")
     return x
 
 
 def main():
-    # Starting point
     x_start = [0.0, 0.0]
-   
-    # Run Newton's method
     x_min = NewtonMethod(x_start)
-   
-    # Print results
     print("Minimizer found at:", x_min)
     print("Function value at minimizer:", f(x_min[0], x_min[1]))
 

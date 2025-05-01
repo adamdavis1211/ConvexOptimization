@@ -22,7 +22,7 @@ def GradientDescent(Q, q):
     return x
 
 
-def GradientDescentBacktracking(Q, q):
+def GradientDescentBacktracking(Q, q,):
     x_star = -np.linalg.solve(Q, q)
     p = f(Q, q, x_star)
     tol = 1e-4
@@ -40,6 +40,30 @@ def GradientDescentBacktracking(Q, q):
     print("Gradient Descent value: ", f(Q, q, x))
     print("||x - x_star||: ", np.linalg.norm(x - x_star))
     return x
+
+
+def SteepestDescent(Q, q, P):
+    x_star = -np.linalg.solve(Q, q)
+    p = f(Q, q, x_star)
+    tol = 1e-4
+    n = Q.shape[1]  # dimensions of x
+    x = np.random.randn(n, 1)   # random numbers for components of x
+    for i in range(max_iter):
+        g = Gradient(Q, q, x)
+        if np.linalg.norm(g) <= tol:
+            break
+        delta_x = SteepestDescentStep(P, g)
+        t = SteepestExactLineSearch(g, delta_x, Q)
+        x = x + t * delta_x
+    print("\niterations needed: ", i+1)
+    print("optimal value: ", p)
+    print("Steepest Descent value: ", f(Q, q, x))
+    print("||x - x_star||: ", np.linalg.norm(x - x_star))
+    return x
+    
+    
+def SteepestExactLineSearch(g, d, Q):
+    return - (g.T @ d / (d.T @ Q @ d)).item()
 
 
 def f(Q, q, x):
@@ -67,7 +91,9 @@ def MakePDMatrix(n):
     A = np.random.randn(n,n)
     return A.T @ A + n * np.eye(n)
 
-def SteepestDescent():
+def SteepestDescentStep(P, grad):
+    return -np.linalg.solve(P, grad)
+
 
 def main():
     n = 100
@@ -76,6 +102,7 @@ def main():
     q = np.random.randn(n,1)
     GradientDescent(Q, q)
     GradientDescentBacktracking(Q, q)
+    SteepestDescent(Q, q, P)
    
 if __name__ == "__main__":
     main()
