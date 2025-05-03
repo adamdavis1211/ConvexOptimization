@@ -1,8 +1,14 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
+max_iter = 500
+n = 100
 
-max_iter = 200
+# exact_line_xk = np.zeros(max_iter)
+# backtrack_line_xk = np.zeros(max_iter)
 
+exact_line_xk = []
+backtrack_line_xk = []
 
 def GradientDescent(Q, q):
     x_star = -np.linalg.solve(Q, q)
@@ -11,6 +17,7 @@ def GradientDescent(Q, q):
     n = Q.shape[1]  # dimensions of x
     x = np.random.randn(n, 1)   # random numbers for components of x
     for i in range(max_iter):
+        exact_line_xk.append((f(Q, q, x) - p).item())
         g = Gradient(Q, q, x)
         if np.linalg.norm(g) <= tol:
             break
@@ -31,6 +38,7 @@ def GradientDescentBacktracking(Q, q):
     n = Q.shape[1]  # dimensions of x
     x = np.random.randn(n, 1)   # random numbers for components of x
     for i in range(max_iter):
+        backtrack_line_xk.append((f(Q, q, x) - p).item())
         g = Gradient(Q, q, x)
         if np.linalg.norm(g) <= tol:
             break
@@ -42,6 +50,8 @@ def GradientDescentBacktracking(Q, q):
     print("Gradient Descent value: ", f(Q, q, x))
     print("||x - x_star||: ", np.linalg.norm(x - x_star))
     return x
+
+
 
 
 def f(Q, q, x):
@@ -65,19 +75,30 @@ def BacktrackingLineSearch(g, Q, q, x, alpha=0.4, beta=0.8):
     return t    
 
 
-def MakePDMatrix(n):
+def MakePDMatrix(n, condition_target):
     A = np.random.randn(n,n)
-    return A.T @ A + n * np.eye(n)
+    s = np.linalg.svd(A, compute_uv=False)
+    sigma_max = s[0]**2
+    sigma_min = s[-1]**2
+    lambdal = (sigma_max - condition_target * sigma_min) / (condition_target - 1)
+    lambdal = max(lambdal, 0)
+    return A.T @ A + lambdal * np.eye(n)
 
-def SteepestDescent():
+def PlotLines():
+    plt.plot(exact_line_xk, label='Exact Line Search')
+    plt.plot(backtrack_line_xk, label='Backtracking Line Search')
+    plt.xlabel('Iterations')
+    plt.ylabel('x_k')
+    plt.title('Gradient Descent with Exact and Backtracking Line Search')
+    plt.yscale('log')  # Set y-axis to logarithmic scale
+    plt.legend()
+    plt.show()
 
 def main():
-    n = 100
-    Q = MakePDMatrix(n)
-    
+    Q = MakePDMatrix(n, 50)
     q = np.random.randn(n,1)
     GradientDescent(Q, q)
     GradientDescentBacktracking(Q, q)
-   
+    PlotLines()
 if __name__ == "__main__":
     main()
