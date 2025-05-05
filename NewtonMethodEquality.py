@@ -1,9 +1,10 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 max_iter = 500
 n = 100
 p = 30
-x_hat = np.random.uniform(low=0.0, high=1.0, size=n)
+x_hat = np.random.uniform(low=0.1, high=1.0, size=n)
 x0 = np.ones(n)
 mu0 = np.zeros(p)
 
@@ -27,16 +28,18 @@ b = A @ x_hat
 
 def NetwonMethodInfeasible(x, mu, A, b):
     epsilon = 1e-4 # tolerance for stopping criterion
+    f_values = [f(x)]
     for i in range(max_iter):
         residual_dual, residual_primal = FindResiduals(x, mu, A, b)
         if np.linalg.norm(np.concatenate([residual_dual, residual_primal])) < epsilon:
-            return x 
+            return x, f_values 
         x_nt, mu_nt = ComputeNewtonStep(x, mu, A, b)
         t = BacktrackingLineSearch(x, mu, x_nt, mu_nt, A, b)
         x = x + t * x_nt
         mu = mu + t * mu_nt
+        f_values.append(f(x))
     print("Did not converge.")
-    return x
+    return x, f_values
 
 def ComputeNewtonStep(x, mu, A, b):
     hess = Hessian(x)
@@ -52,17 +55,31 @@ def FindResiduals(x, mu, A, b):
 
 def BacktrackingLineSearch(x, mu, x_nt, mu_nt, A, b, alpha=0.4, beta=0.8):
     t = 1
-    while t > 1e-8 and np.linalg.norm(np.concatenate(FindResiduals(x + t * x_nt, mu + t * mu_nt, A, b))) > (1 - alpha * t) * np.linalg.norm(np.concatenate(FindResiduals(x, mu, A, b))):
+    while t > 1e-8:
+        new_x = x + t * x_nt
+        if np.any(new_x <= 0):  # enforce x ∈ R++^n
+            t *= beta
+            continue
+        if np.linalg.norm(np.concatenate(FindResiduals(new_x, mu + t * mu_nt, A, b))) <= \
+           (1 - alpha * t) * np.linalg.norm(np.concatenate(FindResiduals(x, mu, A, b))):
+            break
         t *= beta
     return t
     
 def main():
-    x = x0
-    mu = mu0
     b = A @ x_hat
-    opt_point = NetwonMethodInfeasible(x, mu, A, b)
-    print("Optimal point: ", opt_point)
-    pass
+    x_star, f_values = NetwonMethodInfeasible(x0, mu0, A, b)
+
+    print("Optimal point: ", x_star)
+    print("Optimal value of f(x): ", f(x_star))
+
+    # Plot f(x) over iterations
+    plt.plot(f_values, marker='o')
+    plt.title("Convergence of f(x) during Newton's Method")
+    plt.xlabel("Iteration")
+    plt.ylabel("f(x)")
+    plt.grid(True)
+    plt.show()
 
 if __name__ == "__main__":
     main()
