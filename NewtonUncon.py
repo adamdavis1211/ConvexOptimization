@@ -63,7 +63,7 @@ def PlotLines():
 
 
 def main():
-    x_start = [0.0, 0.0]
+    x_start = [-4, 4]
     x_min = NewtonMethod(x_start)
     print("Minimizer found at:", x_min)
     print("Function value at minimizer:", f(x_min[0], x_min[1]))

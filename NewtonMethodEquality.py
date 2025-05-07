@@ -26,7 +26,7 @@ def Hessian(x):
 A = generate_full_rank_matrix(p, n)
 b = A @ x_hat
 
-def NetwonMethodInfeasible(x, mu, A, b):
+def NewtonMethodInfeasible(x, mu, A, b):
     epsilon = 1e-4 # tolerance for stopping criterion
     f_values = [f(x)]
     for i in range(max_iter):
@@ -68,16 +68,21 @@ def BacktrackingLineSearch(x, mu, x_nt, mu_nt, A, b, alpha=0.4, beta=0.8):
     
 def main():
     b = A @ x_hat
-    x_star, f_values = NetwonMethodInfeasible(x0, mu0, A, b)
 
-    print("Optimal point: ", x_star)
-    print("Optimal value of f(x): ", f(x_star))
+    x_star1, f_values1 = NewtonMethodInfeasible(np.copy(x_hat), np.zeros(p), A, b)
+    x_star2, f_values2 = NewtonMethodInfeasible(np.ones(n), np.zeros(p), A, b)
 
-    # Plot f(x) over iterations
-    plt.plot(f_values, marker='o')
+    print("Optimal point from x̂: ", x_star1)
+    print("Optimal value of f(x) from x̂: ", f(x_star1))
+    print("Optimal point from 1s: ", x_star2)
+    print("Optimal value of f(x) from 1s: ", f(x_star2))
+
+    plt.plot(f_values1, label="Start from x̂ (feasible)", marker='o')
+    plt.plot(f_values2, label="Start from 1s (infeasible)", marker='x')
     plt.title("Convergence of f(x) during Newton's Method")
     plt.xlabel("Iteration")
     plt.ylabel("f(x)")
+    plt.legend()
     plt.grid(True)
     plt.show()
 

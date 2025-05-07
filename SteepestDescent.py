@@ -1,6 +1,11 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 max_iter = 200
+
+gradient_descent = []
+gradient_descent_backtracking = []
+steepest_descent = []
 
 def GradientDescent(Q, q):
     x_star = -np.linalg.solve(Q, q)
@@ -9,6 +14,7 @@ def GradientDescent(Q, q):
     n = Q.shape[1]  # dimensions of x
     x = np.random.randn(n, 1)   # random numbers for components of x
     for i in range(max_iter):
+        gradient_descent.append((f(Q, q, x) - p).item())
         g = Gradient(Q, q, x)
         if np.linalg.norm(g) <= tol:
             break
@@ -29,6 +35,7 @@ def GradientDescentBacktracking(Q, q,):
     n = Q.shape[1]  # dimensions of x
     x = np.random.randn(n, 1)   # random numbers for components of x
     for i in range(max_iter):
+        gradient_descent_backtracking.append((f(Q, q, x) - p).item())
         g = Gradient(Q, q, x)
         if np.linalg.norm(g) <= tol:
             break
@@ -49,6 +56,7 @@ def SteepestDescent(Q, q, P):
     n = Q.shape[1]  # dimensions of x
     x = np.random.randn(n, 1)   # random numbers for components of x
     for i in range(max_iter):
+        steepest_descent.append((f(Q, q, x) - p).item())
         g = Gradient(Q, q, x)
         if np.linalg.norm(g) <= tol:
             break
@@ -87,22 +95,39 @@ def BacktrackingLineSearch(g, Q, q, x, alpha=0.4, beta=0.8):
     return t    
 
 
-def MakePDMatrix(n):
+def MakePDMatrix(n, condition):
     A = np.random.randn(n,n)
-    return A.T @ A + n * np.eye(n)
+    s = np.linalg.svd(A, compute_uv=False)
+    sigma_max = s[0]**2
+    sigma_min = s[-1]**2
+    lambdal = (sigma_max - condition * sigma_min) / (condition - 1)
+    lambdal = max(lambdal, 0)
+    return A.T @ A + lambdal * np.eye(n)
 
 def SteepestDescentStep(P, grad):
     return -np.linalg.solve(P, grad)
 
+def PlotLines():
+    plt.plot(gradient_descent, label='Gradient Descent Exact Line Search')
+    plt.plot(gradient_descent_backtracking, label='Gradient Descent Backtracking Line Search')
+    plt.plot(steepest_descent, label='Steepest Descent')
+    plt.xlabel('k')
+    plt.ylabel('f(x_k) - p*')
+    plt.title('Gradient Descent vs Steepest Descent')
+    plt.yscale('log')  # Set y-axis to logarithmic scale
+    plt.legend()
+    plt.show()
+
 
 def main():
-    n = 100
-    Q = MakePDMatrix(n)
+    n = 500
+    Q = MakePDMatrix(n, 15)
     P = np.diag(np.diag(Q))
     q = np.random.randn(n,1)
     GradientDescent(Q, q)
     GradientDescentBacktracking(Q, q)
     SteepestDescent(Q, q, P)
+    PlotLines()
    
 if __name__ == "__main__":
     main()
